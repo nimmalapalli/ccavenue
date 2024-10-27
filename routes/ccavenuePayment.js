@@ -1,0 +1,116 @@
+// const express = require('express');
+// const router = express.Router();
+// const { createPaymentRequest } = require('../controller/ccavenueService');
+
+// // Middleware for validating orderDetails
+// function validateOrderDetails(req, res, next) {
+//   const orderDetails = req.body;
+  
+//   // Example validation (add your own rules based on required fields)
+//   if (!orderDetails.orderId || !orderDetails.amount || !orderDetails.currency) {
+//     return res.status(400).json({ message: 'Invalid order details. Please provide all necessary fields.' });
+//   }
+  
+//   next();  // If validation passes, proceed to the next middleware/route handler
+// }
+
+// router.post('/initiate', validateOrderDetails, (req, res) => {
+//   try {
+//     const orderDetails = req.body;
+
+//     // Create CCAvenue payment request with encrypted data
+//     const paymentUrl = createPaymentRequest(orderDetails);
+
+//     // Send the redirect URL back to the Angular frontend
+//     res.json({ redirectUrl: paymentUrl });
+//   } catch (error) {
+//     // Error handling
+//     console.error('Error creating payment request:', error);
+//     res.status(500).json({ message: 'An error occurred while initiating the payment.' });
+//   }
+// });
+
+// module.exports = router;
+const express = require('express');
+const crypto =require('crypto')
+const router = express.Router();
+const Razorpay = require('razorpay');
+const Payment = require('../models/paymentModel'); // Adjust the path as per your project structure
+const cors = require('cors')
+// const razorpayInstance = new Razorpay({
+//   key_id: 'rzp_test_7xBELXxLBhucXw', // Replace with your key_id
+//   key_secret: 'F9tAWxv6CV5vuMoCnaMUvoF3' // Replace with your key_secret
+// });
+const razorpay = new Razorpay({
+  key_id: 'rzp_test_7xBELXxLBhucXw', // Replace with your API Key
+  key_secret: 'F9tAWxv6CV5vuMoCnaMUvoF3' // Replace with your Secret Key
+});
+
+router.post('/create-order', async (req, res) => {
+  const options = {
+      amount: req.body.amount * 100, // Amount in paise
+      currency: 'INR',
+      receipt: 'receipt#1',
+  };
+  try {
+      const order = await razorpay.orders.create(options);
+      res.json(order);
+  } catch (error) {
+      res.status(500).json({ error });
+  }
+});
+router.post('/order',cors(), (req, res) => {
+  const { amount, currency, receipt} = req.body;
+
+  razorpayInstance.orders.create({ amount, currency, receipt }, (err, order) => {
+    if (!err) {
+      // Create a new payment document
+      const payment = new Payment({
+      
+        id: order.id,
+        entity: order.entity,
+        amount: order.amount,
+        currency: order.currency,
+        receipt: order.receipt,
+        status: order.status,
+        created_at: order.created_at,
+        // Add other fields as per your requirements
+      });
+
+      // Save the payment document to MongoDB
+      payment.save()
+          res.json(savedPayment);
+     
+    }})
+});
+
+
+
+router.post('/verifyOrder',  (req, res)=>{ 
+    
+  // STEP 7: Receive Payment Data
+  const {order_id, payment_id} = req.body;     
+  const razorpay_signature =  req.headers['x-razorpay-signature'];
+
+  // Pass yours key_secret here
+  const key_secret = F9tAWxv6CV5vuMoCnaMUvoF3;     
+
+  // STEP 8: Verification & Send Response to User
+  
+  // Creating hmac object 
+  let hmac = crypto.createHmac('sha256', key_secret); 
+
+  // Passing the data to be hashed
+  hmac.update(order_id + "|" + payment_id);
+  
+  // Creating the hmac in the required format
+  const generated_signature = hmac.digest('hex');
+  
+  
+  if(razorpay_signature===generated_signature){
+      res.json({success:true, message:"Payment has been verified"})
+  }
+  else
+  res.json({success:false, message:"Payment verification failed"})
+});
+module.exports = router;
