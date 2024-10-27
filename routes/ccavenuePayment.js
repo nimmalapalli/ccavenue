@@ -3,7 +3,7 @@ const express = require('express');
 const crypto =require('crypto')
 const router = express.Router();
 const Razorpay = require('razorpay');
-
+const Payment = require('../models/paymentModel'); // Adjust the path as per your project structure
 const cors = require('cors')
 // const razorpayInstance = new Razorpay({
 //   key_id: 'rzp_test_7xBELXxLBhucXw', // Replace with your key_id
@@ -31,7 +31,25 @@ router.post('/order',cors(), (req, res) => {
   const { amount, currency, receipt} = req.body;
 
   razorpayInstance.orders.create({ amount, currency, receipt }, (err, order) => {
-  })
+    if (!err) {
+      // Create a new payment document
+      const payment = new Payment({
+      
+        id: order.id,
+        entity: order.entity,
+        amount: order.amount,
+        currency: order.currency,
+        receipt: order.receipt,
+        status: order.status,
+        created_at: order.created_at,
+        // Add other fields as per your requirements
+      });
+
+      // Save the payment document to MongoDB
+      payment.save()
+          res.json(savedPayment);
+     
+    }})
 });
 
 

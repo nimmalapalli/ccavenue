@@ -15,6 +15,23 @@ const port = process.env.PORT || 63320;
 
 const paymentRoute = require('./routes/ccavenuePayment');
 
+const uri = 
+// 'mongodb+srv://nikhilareddygandlapati:fO8kXWN8aMJKyIyf@cluster0.emcygxj.mongodb.net/?retryWrites=true&w=majority';
+//  `mongodb+srv://snvitsolutions5:4CNhVx3Lp9rZ0NS8@cluster0.2smu8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&ssl=true`
+// `mongodb+srv://snvitsolutions5:Tj0BzwIs3f7Lb6xO@cluster0.2smu8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&ssl=true`
+
+`mongodb+srv://snvitsolutions5:4CNhVx3Lp9rZ0NS8@cluster0.2smu8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&ssl=true`
+
+mongoose.connect(uri, {
+
+  });
+const db = mongoose.connection;
+db.on('error', (error) => {
+  console.error('Error connecting to MongoDB Atlas with Mongoose:', error);
+});
+db.once('open', () => {
+  console.log('Connected to MongoDB Atlas with Mongoose');
+});
 
 
 
