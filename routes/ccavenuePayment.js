@@ -1,41 +1,9 @@
-// const express = require('express');
-// const router = express.Router();
-// const { createPaymentRequest } = require('../controller/ccavenueService');
 
-// // Middleware for validating orderDetails
-// function validateOrderDetails(req, res, next) {
-//   const orderDetails = req.body;
-  
-//   // Example validation (add your own rules based on required fields)
-//   if (!orderDetails.orderId || !orderDetails.amount || !orderDetails.currency) {
-//     return res.status(400).json({ message: 'Invalid order details. Please provide all necessary fields.' });
-//   }
-  
-//   next();  // If validation passes, proceed to the next middleware/route handler
-// }
-
-// router.post('/initiate', validateOrderDetails, (req, res) => {
-//   try {
-//     const orderDetails = req.body;
-
-//     // Create CCAvenue payment request with encrypted data
-//     const paymentUrl = createPaymentRequest(orderDetails);
-
-//     // Send the redirect URL back to the Angular frontend
-//     res.json({ redirectUrl: paymentUrl });
-//   } catch (error) {
-//     // Error handling
-//     console.error('Error creating payment request:', error);
-//     res.status(500).json({ message: 'An error occurred while initiating the payment.' });
-//   }
-// });
-
-// module.exports = router;
 const express = require('express');
 const crypto =require('crypto')
 const router = express.Router();
 const Razorpay = require('razorpay');
-const Payment = require('../models/paymentModel'); // Adjust the path as per your project structure
+
 const cors = require('cors')
 // const razorpayInstance = new Razorpay({
 //   key_id: 'rzp_test_7xBELXxLBhucXw', // Replace with your key_id
@@ -63,25 +31,7 @@ router.post('/order',cors(), (req, res) => {
   const { amount, currency, receipt} = req.body;
 
   razorpayInstance.orders.create({ amount, currency, receipt }, (err, order) => {
-    if (!err) {
-      // Create a new payment document
-      const payment = new Payment({
-      
-        id: order.id,
-        entity: order.entity,
-        amount: order.amount,
-        currency: order.currency,
-        receipt: order.receipt,
-        status: order.status,
-        created_at: order.created_at,
-        // Add other fields as per your requirements
-      });
-
-      // Save the payment document to MongoDB
-      payment.save()
-          res.json(savedPayment);
-     
-    }})
+  })
 });
 
 
